@@ -31,6 +31,14 @@ class App(Frame):
         self.selectedTeacher = ""
         self.teamButtons = []
         self.selectedTeam = ""
+        self.selectedProject = ""
+        self.actionButtons = []
+
+        self.header = Frame(root)
+        self.header.pack(side="top",fill = "both",expand=True)
+
+        self.actionLabel = Label(self.header,bg= "white", text = "Do dis")
+        self.actionLabel.pack(padx = 30, pady = 30)
         
         self.mainFrame = Frame(root,bg="white")
         self.mainFrame.pack(side="top", fill="both", expand=True)
@@ -42,39 +50,85 @@ class App(Frame):
         self.TeamSelection = Frame(self.mainFrame,bg="white",width = 450, height = 400)
         self.TeamSelection.pack(side = LEFT)
 
-        self.ProjectSelection = Frame(self.mainFrame,bg="green",width = 450, height = 400)
-        self.ProjectSelection.pack(side = LEFT)
+        self.ActionSelection = Frame(self.mainFrame,bg= "white",width = 450, height = 400)
+        self.ActionSelection.pack(side=LEFT)
+        self.createActionButtons(self.ActionSelection)
+
+        self.DownloadSelection = Frame(self.mainFrame,bg="white",width = 450, height = 400)
+        self.UploadSelection = Frame(self.mainFrame,bg="white",width = 450, height = 400)
+        
         
         self.teacherSelection(["A","B","C","D","E"],self.TeacherSelection)
 
         self.teamSelection(["1","2","3","4","5","6","7","8","9","10"],self.TeamSelection)
+        
+        self.createUploadButton(self.UploadSelection)
+        self.createCodeSelection(["hi.py","hello.py","bye.py","goodbye.py","nope.avi"],self.DownloadSelection)
+
+    def createActionButtons(self,parentFrame):
+        upButton = Button(parentFrame,text = "upload",height=  7, width = 25, command = lambda :self.changeAction("up"),state=DISABLED)
+        downButton = Button(parentFrame,text = "downlo",height=  7, width = 25,command = lambda :self.changeAction("down"),state=DISABLED)
+        self.actionButtons.append(upButton)
+        self.actionButtons.append(downButton)
+        upButton.pack(pady = 25)
+        downButton.pack(pady = 25)
+        
+        
+    def createCodeSelection(self,projects,parentFrame):
+        count = 0
+        for code in projects:
+            projFrame = Frame(parentFrame,width = 600,background = "white")
+            projButton = Label(projFrame,text = code,width = 25, height= 4)
+            projButton.pack(side = LEFT,padx = 20)
+            downButton = Button(projFrame, text = "Down",width = 15, height= 4)
+            downButton.pack(side = LEFT,padx = (20,20),pady =20)
+            projFrame.pack()
+            count +=1
+    def createUploadButton(self,parentFrame):
+        UploadButton = Button(parentFrame, text = "UPLOAD",width = 30, height = 15)
+        UploadButton.pack(padx = 50)
+    def changeAction(self,action):
+        self.DownloadSelection.pack_forget()
+        self.UploadSelection.pack_forget()
+        if(action == "down"):
+            self.DownloadSelection.pack(side = LEFT)
+        if(action == "up"):
+            self.UploadSelection.pack(side = LEFT)
+    def upProject(self,projName):
+        
+        pass
     def teamSelection(self,teamNames,newFrame):
-        twosFrame = Frame(newFrame,width = 600,background="white")
+        twosFrame = Frame(newFrame,width = 400,background="white")
         count=-1
         for name in teamNames:
+            fix = count+ 1
             button = Button(twosFrame,text=name,width = 20,height=5,relief=RIDGE,bd=5,
-                            highlightcolor="RED",highlightthickness = 2,background=nonActiveColors[count%len(nonActiveColors)],
-                            command = lambda team=name, index=count: self.setTeam(team,index+1) )
+                            highlightcolor="RED",highlightthickness = 2,background=nonActiveColors[fix%len(nonActiveColors)],
+                            command = lambda team=name, index=count: self.setTeam(team,index+1),state=DISABLED )
             button.pack(side=LEFT,padx=10,pady=10)
             self.teamButtons.append(button)
             if(count%2 == 0):
                 twosFrame.pack()
-                twosFrame = Frame(newFrame,width = 600,background="white")
+                twosFrame = Frame(newFrame,width = 400,background="white")
             count += 1
         twosFrame.pack()
+        
     def setTeam(self,teamName,buttonNum):
         print(buttonNum)
         self.selectedTeam = teamName
         for i in range(len(self.teamButtons)):
             self.teamButtons[i]["background"] = nonActiveColors[i%len(nonActiveColors)]
         self.teamButtons[buttonNum]["background"]= activeColors[buttonNum%len(nonActiveColors)]
+        ####
         print(teamName)
+        for action in self.actionButtons:
+            action["state"] = "normal"
     def teacherSelection(self,teacherNames,newFrame):
         twosFrame = Frame(newFrame,width = 600,background="white")
         count=-1
         for name in teacherNames:
             button = Button(twosFrame,text=name,width = 20,height=10,relief=RIDGE,bd=5,
-                            highlightcolor="RED",highlightthickness = 2,background=nonActiveColors[count],
+                            highlightcolor="RED",highlightthickness = 2,background=nonActiveColors[count+1],
                             command = lambda teacher=name, index=count: self.setTeacher(teacher,index+1) )
             button.pack(side=LEFT,padx=10,pady=10)
             self.teacherButtons.append(button)
@@ -89,6 +143,9 @@ class App(Frame):
             self.teacherButtons[i]["background"] = nonActiveColors[i]
         self.teacherButtons[buttonNum]["background"]= activeColors[buttonNum]
         print(teacher)
+
+        for team in self.teamButtons:
+            team["state"] = "normal"
         
 ##        self.mainFrame.grid_rowconfigure(0,weight=1)
 ##        self.mainFrame.grid_rowconfigure(1,weight=4)
