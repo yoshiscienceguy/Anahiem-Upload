@@ -31,7 +31,6 @@ def login():
     
 
 def upload(fileName,parentID):
-    login()
     index = fileName.rindex("/")
     ts = time.gmtime()
     simpleFile = fileName[index+1:]
@@ -51,16 +50,16 @@ def upload(fileName,parentID):
     if(file.get('id')):
         return True
     return False
-def downloadTo(file_id):
+def downloadTo(file_id,fileName):
     request = service.files().get_media(fileId=file_id)
-    fh = io.FileIO("wow", 'wb')
+    fh = io.FileIO(fileName, 'wb')
     downloader = MediaIoBaseDownload(fh, request)
     done = False
     while done is False:
         status, done = downloader.next_chunk()
         print ("Download %d%%." % int(status.progress() * 100))
+
 def download(id):
-    login()
     folderID="'"+id+"'"
     query = "parents in " +folderID
     results = service.files().list( q= query,
@@ -75,3 +74,5 @@ def download(id):
             toReturn[item['name'].encode("utf-8")] = item['id'].encode("utf-8")
             print('{0} ({1})'.format(item['name'], item['id']))
         return toReturn
+
+

@@ -74,11 +74,12 @@ class App(Frame):
                             command = self.chooseFile,highlightcolor="RED",highlightthickness = 2)
         self.UploadButton.pack(padx = 50)
         
-        self.createCodeSelection(["hi.py","hello.py","bye.py","goodbye.py","nope.avi"],self.DownloadSelection)
-
-    def download(self,fileName):
         
-        print(Schools[CURRENTSCHOOL]["Folders"][self.selectedTeacher][int(self.selectedTeam)-1])
+
+    def download(self,fileID,fileName):
+        drive.downloadTo(fileID,fileName)
+        
+        
     def upload(self,fileName):
         folderURL = Schools[CURRENTSCHOOL]["Folders"][self.selectedTeacher][int(self.selectedTeam)-1]
         print(folderURL)
@@ -96,6 +97,9 @@ class App(Frame):
     def changeAction(self,action):
         self.DownloadSelection.pack_forget()
         self.UploadSelection.pack_forget()
+
+        self.createCodeSelection(self.DownloadSelection)
+        
         if(action == "down"):
             self.actionButtons[1]["background"] = activeColors[0]
             self.actionButtons[0]["background"] = "white"
@@ -136,19 +140,29 @@ class App(Frame):
         self.PROJECTS[projName][2]["background"] = "green"
         self.UploadButton["state"] = DISABLED
         
-    def createCodeSelection(self,projects,parentFrame):
+    def createCodeSelection(self,parentFrame):
         count = 0
-        for code in projects:
-            projFrame = Frame(parentFrame,background = "white")
-            projButton = Button(projFrame,font = Newfont,text = code,width = 10, height= 1, background="white",relief=GROOVE,
-                                command = lambda codeName = code : self.selectProject(codeName))
-            projButton.pack(side = LEFT,padx = 20)
-            downButton = Button(projFrame,font = Newfont, text = "Down",width = 10, height= 1,state="disabled",
-                                background="white",relief=FLAT, command = lambda fileName = code:self.download(fileName))
-            downButton.pack(side = LEFT,padx = (20,20),pady =20)
-            projFrame.pack(fill = "both",expand=True)
-            self.PROJECTS[code] = (projFrame,projButton,downButton)
-            count +=1
+        folderID = Schools[CURRENTSCHOOL]["Folders"][self.selectedTeacher][int(self.selectedTeam)-1]
+        projects = drive.download(folderID)
+        for project in self.PROJECTS:
+            self.PROJECTS[project][0].destroy()
+            self.PROJECTS[project][1].destroy()
+            self.PROJECTS[project][2].destroy()
+        self.PROJECTS={}
+        if(projects):
+            for code in projects:
+                projFrame = Frame(parentFrame,background = "white")
+                projButton = Button(projFrame,font = Newfont,text = code,width = 10, height= 1, background="white",relief=GROOVE,
+                                    command = lambda codeName = code : self.selectProject(codeName))
+                projButton.pack(side = LEFT,padx = 20)
+                downButton = Button(projFrame,font = Newfont, text = "Down",width = 10, height= 1,state="disabled",
+                                    background="white",relief=FLAT, command = lambda fileID = projects[code],fileName = code:self.download(fileID,fileName))
+                downButton.pack(side = LEFT,padx = (20,20),pady =20)
+                projFrame.pack(fill = "both",expand=True)
+                self.PROJECTS[code] = (projFrame,projButton,downButton)
+                count +=1
+        else:
+            self.actionLabel["text"] = "No Files Found"
 
     def teamSelection(self,teamNames,newFrame):
         twosFrame = Frame(newFrame,width = 400,background="white")
