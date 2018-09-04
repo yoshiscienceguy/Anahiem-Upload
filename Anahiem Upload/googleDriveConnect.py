@@ -61,6 +61,22 @@ def downloadTo(file_id,fileName):
 
 def download(id):
     folderID="'"+id+"'"
+    query = "parents in " +folderID+" and trashed=false"
+    results = service.files().list( q= query,
+        pageSize=10, fields="nextPageToken, files(id, name)").execute()
+    items = results.get('files', [])
+    if not items:
+        print('No files found.')
+    else:
+        print('Files:')
+        toReturn = {}
+        for item in items:
+            toReturn[item['name'].encode("utf-8")] = item['id'].encode("utf-8")
+            print('{0} ({1})'.format(item['name'], item['id']))
+        return toReturn
+
+def folders(id):
+    folderID="'"+id+"'"
     query = "parents in " +folderID
     results = service.files().list( q= query,
         pageSize=10, fields="nextPageToken, files(id, name)").execute()

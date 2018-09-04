@@ -4,12 +4,18 @@ from tkFileDialog import askopenfilename
 import googleDriveConnect as drive
 FOLDERID = "1Q1ViyA6VNwyHzAkKjIbKlxMWrCpFAgeE"
 Schools = {
-        "Ponderosa":{"Teachers": ["Navarro","Dixon","Vazquez","Morales","Pichardo"],
+        "Ponderosa":{"Teachers": ["Gruber","Dixon","Vazquez","Martin","Pichardo"],
                      "Folders": {}
                      },
-        "Stoddard":4,
-        "Jefferson":3,
-        "Ross":4
+        "Stoddard":{"Teachers": ["Box","Castellano","Estigoy","Lock"],
+                     "Folders": {}
+                     },
+        "Jefferson":{"Teachers": ["Lee","Zarate","McChristie"],
+                     "Folders": {}
+                     },
+        "Ross":{"Teachers": ["Fernandez","Guillory","Pearson","Wilson"],
+                     "Folders": {}
+                     }
     }
 
 def getFolders():
@@ -20,7 +26,6 @@ def getFolders():
     for i in range(len(info)/10):
         Schools[CURRENTSCHOOL]["Folders"][info[i*11]]= info[i*10 + (i+1):11*(i+1)]
 
-    print(Schools)
 #nonActiveColors = ["#00bff3","#f68e56","#a186be","#82ca9c","#fff799"]
 
 nonActiveColors = ["white","white"]
@@ -62,22 +67,23 @@ class App(Frame):
         
         self.createActionButtons(self.ActionSelection)
 
-        self.DownloadSelection = LabelFrame(self.mainFrame,font = LookATME,bd=0,text="Download",bg="white",width = 450, height = 400)
-        self.UploadSelection = LabelFrame(self.mainFrame,font = LookATME,bd=0,text="Upload",bg="white",width = 450, height = 400)
+        self.DownloadSelection = LabelFrame(self.mainFrame,font = LookATME,bd=0,text="Download",bg="white",width = 250, height = 400)
+        self.UploadSelection = LabelFrame(self.mainFrame,font = LookATME,bd=0,text="Upload",bg="white",width = 250, height = 400)
         
         
-        self.teacherSelection(["Navarro","Gruber","Morales","Dixon","Fernandez"],self.TeacherSelection)
+        self.teacherSelection(Schools[CURRENTSCHOOL]["Teachers"],self.TeacherSelection)
 
         self.teamSelection(["1","2","3","4","5","6","7","8","9","10"],self.TeamSelection)
 
         self.UploadButton = Button(self.UploadSelection,font = Newfont, text = "UPLOAD",width = 20, height = 10,relief=RIDGE,bd=5,state=DISABLED,
                             command = self.chooseFile,highlightcolor="RED",highlightthickness = 2)
-        self.UploadButton.pack(padx = 50)
+        self.UploadButton.pack(pady=(30,0),padx = 50)
         
         
 
     def download(self,fileID,fileName):
         drive.downloadTo(fileID,fileName)
+        self.actionLabel["text"] = "DOWNLOAD COMPLETE!"
         
         
     def upload(self,fileName):
@@ -85,6 +91,7 @@ class App(Frame):
         print(folderURL)
         success = drive.upload(fileName,folderURL)
         if(success):
+            self.actionLabel["text"] = "UPLOAD COMPLETE!"
             print("yay")
             
         print(self.selectedTeacher + " "+self.selectedTeam + " " + fileName)
@@ -98,14 +105,16 @@ class App(Frame):
         self.DownloadSelection.pack_forget()
         self.UploadSelection.pack_forget()
 
-        self.createCodeSelection(self.DownloadSelection)
+        
         
         if(action == "down"):
+            
             self.actionButtons[1]["background"] = activeColors[0]
             self.actionButtons[0]["background"] = "white"
             
             self.DownloadSelection.pack(side = LEFT,padx=(20,0),fill = "both",expand=True)
             self.actionLabel["text"] = "Select a file and click download"
+            self.createCodeSelection(self.DownloadSelection)
             for projects in self.PROJECTS:
                 info = self.PROJECTS[projects]
                 info[1]["state"] = "normal"
@@ -117,11 +126,11 @@ class App(Frame):
             self.UploadButton["state"] = "normal"
             
     def createActionButtons(self,parentFrame):
-        
-        upButton = Button(parentFrame,font = Newfont,text = "upload",height=  3, width = 10,bg="white",relief=RIDGE,bd=5,
+        ##
+        upButton = Button(parentFrame,font = Newfont,image=upImage,height=  100, width = 200,bg="white",relief=RIDGE,bd=5,
                             highlightcolor="RED",highlightthickness = 2,
                           command = lambda :self.changeAction("up"),state=DISABLED)
-        downButton = Button(parentFrame,font = Newfont,text = "downlo",height=  3, width = 10,bg="white",relief=RIDGE,bd=5,
+        downButton = Button(parentFrame,font = Newfont,image=downImage,height=  100, width = 200,bg="white",relief=RIDGE,bd=5,
                             highlightcolor="RED",highlightthickness = 2,
                             command = lambda :self.changeAction("down"),state=DISABLED)
         self.actionButtons.append(upButton)
@@ -143,16 +152,19 @@ class App(Frame):
     def createCodeSelection(self,parentFrame):
         count = 0
         folderID = Schools[CURRENTSCHOOL]["Folders"][self.selectedTeacher][int(self.selectedTeam)-1]
+        print(folderID)
         projects = drive.download(folderID)
         for project in self.PROJECTS:
             self.PROJECTS[project][0].destroy()
             self.PROJECTS[project][1].destroy()
             self.PROJECTS[project][2].destroy()
         self.PROJECTS={}
+        if(projects == None):
+            self.actionLabel["text"] = "No Files Found"
         if(projects):
             for code in projects:
                 projFrame = Frame(parentFrame,background = "white")
-                projButton = Button(projFrame,font = Newfont,text = code,width = 10, height= 1, background="white",relief=GROOVE,
+                projButton = Button(projFrame,font = Newfont,text = code,width = 40, height= 1, background="white",relief=GROOVE,
                                     command = lambda codeName = code : self.selectProject(codeName))
                 projButton.pack(side = LEFT,padx = 20)
                 downButton = Button(projFrame,font = Newfont, text = "Down",width = 10, height= 1,state="disabled",
@@ -161,22 +173,21 @@ class App(Frame):
                 projFrame.pack(fill = "both",expand=True)
                 self.PROJECTS[code] = (projFrame,projButton,downButton)
                 count +=1
-        else:
-            self.actionLabel["text"] = "No Files Found"
+
 
     def teamSelection(self,teamNames,newFrame):
-        twosFrame = Frame(newFrame,width = 400,background="white")
+        twosFrame = Frame(newFrame,width = 250,background="white")
         count=-1
         for name in teamNames:
             fix = count+ 1
-            button = Button(twosFrame,font = Newfont,text=name,width = 5,height=1,relief=RIDGE,bd=5,
+            button = Button(twosFrame,font = Newfont,text=name,width = 5,height=2,relief=RIDGE,bd=5,
                             highlightcolor="RED",highlightthickness = 2,background=nonActiveColors[fix%len(nonActiveColors)],
                             command = lambda team=name, index=count: self.setTeam(team,index+1),state=DISABLED )
             button.pack(side=LEFT,padx=10,pady=10)
             self.teamButtons.append(button)
             if(count%2 == 0):
                 twosFrame.pack()
-                twosFrame = Frame(newFrame,width = 400,background="white")
+                twosFrame = Frame(newFrame,width = 250,background="white")
             count += 1
         twosFrame.pack()
         
@@ -202,7 +213,7 @@ class App(Frame):
             info[2]["state"] = DISABLED
             info[2]["background"] = "white"    
     def teacherSelection(self,teacherNames,newFrame):
-        twosFrame = Frame(newFrame,width = 600,background="white")
+        twosFrame = Frame(newFrame,width = 250,background="white")
         count=-1
         for name in teacherNames:
             button = Button(twosFrame,font = Newfont,text=name,width = 10,height=3,relief=RIDGE,bd=5,
@@ -212,7 +223,7 @@ class App(Frame):
             self.teacherButtons.append(button)
             if(count%2 == 0):
                 twosFrame.pack()
-                twosFrame = Frame(newFrame,width = 600,background="white")
+                twosFrame = Frame(newFrame,width = 250,background="white")
             count += 1
         twosFrame.pack()
         
@@ -248,12 +259,10 @@ root = Tk()
 root.title("AESD Upload Program")
 root.configure(background='white')
 root.resizable(0,0)
-Newfont = tkFont.Font(root,family="Helvetica",size=20,weight="bold")
+Newfont = tkFont.Font(root,family="Helvetica",size=10,weight="bold")
 LookATME = tkFont.Font(root,family="Helvetica",size=25,weight="bold")
-images = [PhotoImage(file="./Box1.gif"),
-          PhotoImage(file="./Box2.gif"),
-          PhotoImage(file="./Box3.gif"),
-          PhotoImage(file="./Box4.gif"),
-          PhotoImage(file="./Box5.gif")]
+upImage = PhotoImage(file="./upload.gif")
+downImage = PhotoImage(file="./download.gif")
+
 A = App(root)
 root.mainloop()

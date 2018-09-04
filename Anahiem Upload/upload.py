@@ -48,24 +48,10 @@ class App(Frame):
         self.upDownButtons.grid_columnconfigure(1,weight=1)
         self.classesButton = Frame(self.mainFrame,width = 900,bg="white")
         
-        self.downloadList = Frame(self.mainFrame,width = 900,bg="white")
-        self.downloadList.grid_rowconfigure(0,weight=1)
-        self.downloadList.grid_columnconfigure(0,weight=1)
-        
         self._createBackButton()
         self._createClassChoice()
         self._createDownUp()
         self._createTeamChoice()
-        self._createlistBox()
-        self.classesButton.tkraise()
-    def getFiles(self):
-        FileID = Schools[CURRENTSCHOOL]["Folders"][self.teacher][self.teamNum-1]
-        self.results = drive.download(FileID)
-        
-        self.updateBox(self.results.keys())
-        self.downloadList.tkraise()
-        self.frameNumber = 3
-        
     def chooseFile(self):
         filename = askopenfilename(filetypes = (("Python Files","*.py"),("All Files","*.*")))
         if(filename == ""):
@@ -76,7 +62,7 @@ class App(Frame):
             top = Toplevel(bg = "white")
             top.wm_geometry("300x200")
             top.title("Sucess")
-            msg = Message(top, text="Sucessfully uploaded",width=250,bg="white")
+            msg = Message(top, text="Sucessfully uploaded the file",width=250,bg="white")
             msg['font'] = helv36
             msg.pack(pady=15)
 
@@ -105,31 +91,6 @@ class App(Frame):
         self.currentTeacherName.set("Current Teacher: "+ self.teacher)
         self.teamButtons.tkraise()
         self.frameNumber = 3
-    def updateBox(self,keys):
-        self.files= keys
-        self.downloadFiles.delete(0, END)
-        for item in keys:
-            self.downloadFiles.insert(END, item)
-    def selectDownload(self):
-        selection = map(int, self.downloadFiles.curselection())[0]
-        fileName = self.files[selection]
-        fileID = self.results[fileName]
-        drive.downloadTo(fileID)
-        
-    def _createlistBox(self):
-        self.downloadFiles = Listbox(self.downloadList,width = 50)
-        
-
-        
-        self.downloadFiles.grid(row=0,column=0,padx= 25,pady = (25,0))
-        
-        self.forwardPhoto = PhotoImage(file="./Forward.gif")
-        bButton = Button(self.downloadList,image=self.forwardPhoto,bg="white",relief=FLAT,
-                         command=self.selectDownload)
-        bButton.grid(row=1,column=0,padx= 25,pady = (25,0))
-        
-        
-        self.downloadList.grid(row=1,pady=(30,5),padx=25, sticky="nsew")
     def _createClassChoice(self):
         amountClasses = len(Schools[CURRENTSCHOOL]["Teachers"])
         
@@ -158,7 +119,7 @@ class App(Frame):
         self.Dphoto = PhotoImage(file="./download.gif")
 
         uploadButton = Button(self.upDownButtons,image=self.Uphoto,bg="white",command=self.chooseFile)
-        downloadButton = Button(self.upDownButtons,image=self.Dphoto,bg="white",command=self.getFiles)
+        downloadButton = Button(self.upDownButtons,image=self.Dphoto,bg="white")
         uploadButton.grid(row=0,column=0,padx=10, pady=5,sticky="e")
         downloadButton.grid(row=0,column=1,padx=10, pady=5,sticky="w")
         self.upDownButtons.grid(row=1,pady=25,padx=25, sticky="nsew")
@@ -179,7 +140,6 @@ class App(Frame):
     def _createBackButton(self):
         self._createTeacherDisplay()
         self._createTeamNumber()
-        
         self.backPhoto = PhotoImage(file="./Back.gif")
         bButton = Button(self.backButton,image=self.backPhoto,bg="white",relief=FLAT,
                          command=self.goBack)
@@ -190,7 +150,6 @@ class App(Frame):
         
         
 root = Tk()
-root.title("AESD Upload Program")
 root.configure(background='white')
 images = [PhotoImage(file="./Box1.gif"),
           PhotoImage(file="./Box2.gif"),
