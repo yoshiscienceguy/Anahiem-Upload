@@ -16,16 +16,16 @@ from apiclient.http import MediaIoBaseDownload
 # Setup the Drive v3 API
 
 service = None
-
+HOME="/home/pi/Anahiem-upload/Anahiem Upload/"
 def login():
     global service
     SCOPES = 'https://www.googleapis.com/auth/drive'
-    store = file.Storage('credentials.json')
+    store = file.Storage(HOME+'credentials.json')
     creds = store.get()
     parser = argparse.ArgumentParser(parents=[tools.argparser])
     flags = parser.parse_args()
     if not creds or creds.invalid:
-        flow = client.flow_from_clientsecrets('client_secret.json', SCOPES)
+        flow = client.flow_from_clientsecrets(HOME+'client_secret.json', SCOPES)
         creds = tools.run_flow(flow, store,flags)
     service = build('drive', 'v3', http=creds.authorize(Http()))
     
@@ -58,6 +58,7 @@ def downloadTo(file_id,fileName):
     while done is False:
         status, done = downloader.next_chunk()
         print ("Download %d%%." % int(status.progress() * 100))
+    return done
 
 def download(id):
     folderID="'"+id+"'"

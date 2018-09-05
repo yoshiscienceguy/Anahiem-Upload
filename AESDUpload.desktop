@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Name=AESD Upload
+Exec=sudo python /home/pi/Anahiem-upload/Anahiem\ Upload/uploadNew.pyw
+Terminal=false
+Icon=/home/pi/IrvineUploadver2/MxUpload/icons/logo.ico
+Type=Application
+Categories=None;
+
